@@ -1,6 +1,6 @@
 helmCharts:
   - name: kubearmor-operator
     repo: https://kubearmor.github.io/charts
-    version: latest
+    version: v1.4.1
     releaseName: kubearmor-operator
     namespace: kubearmor
