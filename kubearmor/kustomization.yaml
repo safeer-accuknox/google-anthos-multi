@@ -2,3 +2,5 @@ resources:
   - base
   - https://raw.githubusercontent.com/kubearmor/KubeArmor/main/pkg/KubeArmorOperator/config/samples/sample-config.yml
   - agents
+  - deployment.yaml
+  - namespace.yaml
