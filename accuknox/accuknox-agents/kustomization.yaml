@@ -12,4 +12,12 @@ helmCharts:
     version: v0.6.7
     valuesFile: values.yaml
 
+configMapGenerator:
+  - name: onboarding-vars
+    literals:
+      - cluster_name=anthos-test-$(RANDOM_ID)
+      - CLUSTER_NAME=anthos-test-$(RANDOM_ID)
+    options:
+      disableNameSuffixHash: true
+
 namespace: agents
