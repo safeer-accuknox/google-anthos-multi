@@ -10,9 +10,3 @@ helmCharts:
     version: v1.4.1
     releaseName: kubearmor-operator
     namespace: kubearmor
-  - name: accuknox-agents
-    repo: oci://registry-1.docker.io/accuknox/accuknox-agents
-    version: v0.6.7
-    releaseName: agents
-    namespace: agents
-    valuesFile: values.yaml
