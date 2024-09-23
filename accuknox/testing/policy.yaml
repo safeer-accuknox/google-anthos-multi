@@ -4,12 +4,11 @@ metadata:
   name: block-pkg-mgmt-tools-exec
   namespace: default
 spec:
+  process:
+    matchPaths:
+    - action: Block
+      path: /usr/bin/apt
+      severity: 1
   selector:
     matchLabels:
       app: ubuntu
-  process:
-    matchPaths:
-    - path: /usr/bin/apt
-    - path: /usr/bin/apt-get
-  action:
-    Block
