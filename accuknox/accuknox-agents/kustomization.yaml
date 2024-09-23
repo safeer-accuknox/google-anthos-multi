@@ -10,5 +10,6 @@ helmCharts:
     releaseName: agents
     namespace: agents
     version: v0.6.7
+    valuesFile: values.yaml
 
 namespace: agents
