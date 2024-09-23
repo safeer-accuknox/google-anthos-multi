@@ -6,8 +6,8 @@ resources:
 
 helmCharts:
   - name: agents
-    repo: "oci://registry-1.docker.io/accuknox/accuknox-agents"
-    releaseName: agents
+    repo: "oci://registry-1.docker.io/accuknox"
+    releaseName: accuknox-agents
     namespace: agents
     version: "v0.6.7"
     valuesFile: values.yaml
