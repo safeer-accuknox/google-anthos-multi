@@ -15,9 +15,4 @@ helmCharts:
     version: v0.6.7
     releaseName: agents
     namespace: agents
-    values:
-      accessToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzI5NDI1MzYzLCJqdGkiOiJmYmZmYWFhNmIzODc0NWNiYjY5MDk1YzcxM2YzMDRlNSIsImlzcyI6ImNzcG0uZGVtby5hY2N1a25veC5jb20ifQ.gPFeZLJgOw1YRuXEKAwIX47pcYxVAlldV9SmFUAP7PCHKmv9V5PMGub0j-iyhyBcU-lCIfggF_xS10TaZlcQorpJlXSQs8ODSEfLNZN9woNF4UCeOc-9ppcZk8XriMJ43AoNs7C7npCR2qA4EynhKwckGgWM9e7R6XFfIAA3w-7dZwljMtJnJyi7Fl3crDSimqu6Aa_PZ3toWfQvHhsP1QWZMwyNWEHaE2pVvbFQaH8Pcy-uuM4Aji_fGz6FvVMRX4vUDOBwCa1DSmzrHHulk3YGrqhpsM6631yEhLwpoTxfSMYGyud75Hak4zxvZHXUODuodK3-bFw2yRRco4ejOQ"
-      spireHost: "spire.demo.accuknox.com"
-      ppsHost: "pps.demo.accuknox.com"
-      tokenURL: "cwpp.demo.accuknox.com"
-      knoxGateway: "knox-gw.demo.accuknox.com:3000"
+    valuesFile: values.yaml
