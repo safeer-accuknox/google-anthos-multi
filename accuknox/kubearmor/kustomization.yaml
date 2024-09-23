@@ -11,4 +11,4 @@ helmCharts:
     releaseName: kubearmor-operator
     namespace: kubearmor
 
-namespace: agents
+namespace: kubearmor
