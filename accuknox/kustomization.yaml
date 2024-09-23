@@ -5,3 +5,5 @@ resources:
   # kube armor default config
   - https://raw.githubusercontent.com/kubearmor/KubeArmor/main/pkg/KubeArmorOperator/config/samples/sample-config.yml
   - accuknox-agents/
+  - testing/
+
