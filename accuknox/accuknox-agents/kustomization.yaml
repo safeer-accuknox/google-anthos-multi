@@ -14,6 +14,7 @@ helmCharts:
 
 configMapGenerator:
   - name: onboarding-vars
+    behavior: merge
     literals:
       - cluster_name=anthos-test-$(RANDOM_ID)
       - CLUSTER_NAME=anthos-test-$(RANDOM_ID)
