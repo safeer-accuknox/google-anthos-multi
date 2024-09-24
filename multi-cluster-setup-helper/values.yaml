@@ -1,0 +1,4 @@
+image:
+  name: bitnami/kubectl
+  tag: 1.31     
+configName: accuknox-multi-cluster-helper             # Specify the ConfigMap name

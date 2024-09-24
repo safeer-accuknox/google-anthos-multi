@@ -1,0 +1,4 @@
+apiVersion: v2
+name: accuknox-multi-cluster-helper
+description: A Helm chart for creating Jobs, ConfigMaps, and RBAC for AccuKnox multi-cluster setups
+version: 0.1.0
