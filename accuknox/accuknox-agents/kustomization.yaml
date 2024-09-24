@@ -1,6 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
+configurations:
+- configuration.yaml
 resources:
   - namespace.yaml
 
@@ -13,12 +14,20 @@ helmCharts:
     valuesFile: values.yaml
 
 configMapGenerator:
-  - name: onboarding-vars
-    behavior: merge
+  - name: anthos-test # cluster name
     literals:
-      - cluster_name=anthos-test-$(RANDOM_ID)
-      - CLUSTER_NAME=anthos-test-$(RANDOM_ID)
-    options:
-      disableNameSuffixHash: true
+      - clusterNameWorkAround=true
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: anthos-test # cluster name
+      fieldPath: metadata.name
+    targets:
+      - select:
+          kind: ConfigMap
+          name: onboarding-vars
+        fieldPaths:
+          - data.CLUSTER_NAME
 
 namespace: agents
