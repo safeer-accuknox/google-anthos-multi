@@ -1,9 +1,0 @@
-nameReference:
-- kind: ConfigMap
-  fieldSpecs:
-  - kind: ConfigMap
-    path: data/CLUSTER_NAME
-- kind: ConfigMap
-  fieldSpecs:
-  - kind: ConfigMap
-    path: data/cluster_name

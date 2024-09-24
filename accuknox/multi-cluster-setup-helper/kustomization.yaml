@@ -17,3 +17,16 @@ patches:
       name: accuknox-multi-cluster-helper
 
 namespace: agents
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: accuknox-multi-cluster-helper
+      fieldPath: data.generatedClusterName
+    targets:
+      - select:
+          kind: ConfigMap
+          name: onboarding-vars
+        fieldPaths:
+          - data.CLUSTER_NAME
+          - data.cluster_name
