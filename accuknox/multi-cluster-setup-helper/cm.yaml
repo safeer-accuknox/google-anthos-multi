@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  clusterNamePrefix: ""
+  generatedClusterName: ""
+kind: ConfigMap
+metadata:
+  name: accuknox-multi-cluster-helper
