@@ -13,16 +13,11 @@ helmCharts:
     version: v0.6.7
     valuesFile: values.yaml
 
-configMapGenerator:
-  - name: anthos-test # cluster name
-    literals:
-      - clusterNameWorkAround=true
-
 replacements:
   - source:
       kind: ConfigMap
-      name: anthos-test # cluster name
-      fieldPath: metadata.name
+      name: accuknox-multi-cluster-helper
+      fieldPath: data.generatedClusterName
     targets:
       - select:
           kind: ConfigMap
