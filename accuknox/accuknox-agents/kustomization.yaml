@@ -29,5 +29,6 @@ replacements:
           name: onboarding-vars
         fieldPaths:
           - data.CLUSTER_NAME
+          - data.cluster_name
 
 namespace: agents
