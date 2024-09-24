@@ -31,10 +31,11 @@ spec:
             - |
               if [ -n "$CLUSTER_NAME_PREFIX" ] && [ -z "$GENERATED_CLUSTER_NAME" ]; then
                 NEW_VALUE="$CLUSTER_NAME_PREFIX-$(date +%Y%m%d%H%M%S)"
-                printf "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: accuknox-multi-cluster-helper\n  namespace: $NAMESPACE\ndata:\n  generatedClusterName: \"%s\"" "$NEW_VALUE" | kubectl apply -f -
 
-                kubectl patch configmap onboarding-vars -n $NAMESPACE --type='json' -p='[{"op": "replace", "path": "/data/CLUSTER_NAME", "value": $CLUSTER_NAME_PREFIX}]'
-                kubectl patch configmap onboarding-vars -n $NAMESPACE --type='json' -p='[{"op": "replace", "path": "/data/cluster_name", "value": $CLUSTER_NAME_PREFIX}]'
+                kubectl patch configmap accuknox-multi-cluster-helper -n "$NAMESPACE" --type='json' -p="[{'op': 'replace', 'path': '/data/generatedClusterName', 'value': '$NEW_VALUE'}]"
+
+                kubectl patch configmap onboarding-vars -n "$NAMESPACE" --type='json' -p="[{'op': 'replace', 'path': '/data/CLUSTER_NAME', 'value': '$NEW_VALUE'}]"
+                kubectl patch configmap onboarding-vars -n "$NAMESPACE" --type='json' -p="[{'op': 'replace', 'path': '/data/cluster_name', 'value': '$NEW_VALUE'}]"
 
                 kubectl rollout restart deployment agents-operator -n $NAMESPACE
                 kubectl rollout restart deployment policy-enforcement-agent -n $NAMESPACE

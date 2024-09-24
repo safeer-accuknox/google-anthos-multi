@@ -1,0 +1,2000 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: agents
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubearmor
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.11.1
+  name: discoveredpolicies.security.kubearmor.com
+spec:
+  group: security.kubearmor.com
+  names:
+    kind: DiscoveredPolicy
+    listKind: DiscoveredPolicyList
+    plural: discoveredpolicies
+    shortNames:
+    - dsp
+    singular: discoveredpolicy
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.phase
+      name: Status
+      type: string
+    - jsonPath: .spec.status
+      name: Policy_Status
+      type: string
+    - jsonPath: .status.kind
+      name: Policy_Type
+      type: string
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: DiscoveredPolicy is the Schema for the discoveredpolicies API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: DiscoveredPolicySpec defines the desired state of DiscoveredPolicy
+            properties:
+              policy:
+                x-kubernetes-preserve-unknown-fields: true
+              status:
+                default: Inactive
+                enum:
+                - Inactive
+                - inactive
+                - Active
+                - active
+                - PendingUpdates
+                type: string
+            required:
+            - status
+            type: object
+          status:
+            description: DiscoveredPolicyStatus defines the observed state of DiscoveredPolicy
+            properties:
+              kind:
+                type: string
+              lastUpdatedTime:
+                format: date-time
+                type: string
+              message:
+                type: string
+              phase:
+                enum:
+                - Validated
+                - Success
+                - Failed
+                - Unknown
+                type: string
+              reason:
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: accuknox-multi-cluster-helper
+  namespace: agents
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: agents-operator
+  namespace: agents
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: discovery-engine
+  namespace: agents
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kmux
+  namespace: agents
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: policy-enforcement-agent
+  namespace: agents
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: shared-informer-agent
+  namespace: agents
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubearmor-operator
+  namespace: kubearmor
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: accuknox-multi-cluster-helper
+  name: accuknox-multi-cluster-helper
+  namespace: agents
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - accuknox-multi-cluster-helper
+  - onboarding-vars
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - create
+  - update
+  - patch
+- apiGroups:
+  - apps
+  - extensions
+  resourceNames:
+  - agents-operator
+  - policy-enforcement-agent
+  - feeder-service
+  - shared-informer-agent
+  resources:
+  - deployments
+  verbs:
+  - get
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kmux
+  namespace: agents
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kubearmor-operator-tls-secrets-role
+  namespace: kubearmor
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - kubearmor-ca
+  - kubearmor-client-certs
+  - kubearmor-relay-server-certs
+  - kubearmor-controller-webhook-server-cert
+  resources:
+  - secrets
+  verbs:
+  - get
+  - update
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: agents-operator
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - configmaps
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - create
+- apiGroups:
+  - '*'
+  resources:
+  - deployments
+  - pods
+  - secrets
+  - tokenreviews
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+  - update
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kmux
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cilium.io
+  resources:
+  - ciliumnetworkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - security.kubearmor.com
+  resources:
+  - kubearmorpolicies
+  - kubearmorhostpolicies
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubearmor-operator-clusterrole
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - watch
+  - list
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  - services
+  - configmaps
+  verbs:
+  - get
+  - create
+  - delete
+  - update
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  verbs:
+  - list
+  - get
+  - create
+  - delete
+  - update
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  verbs:
+  - get
+  - create
+  - delete
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - create
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  - rolebindings
+  - clusterroles
+  - clusterrolebindings
+  verbs:
+  - create
+  - get
+- apiGroups:
+  - operator.kubearmor.com
+  resources:
+  - kubearmorconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operator.kubearmor.com
+  resources:
+  - kubearmorconfigs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - create
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubearmor-operator-manage-controller-clusterrole
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - get
+  - patch
+  - list
+  - watch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - security.kubearmor.com
+  resources:
+  - kubearmorpolicies
+  - kubearmorclusterpolicies
+  - kubearmorhostpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - security.kubearmor.com
+  resources:
+  - kubearmorpolicies/status
+  - kubearmorclusterpolicies/status
+  - kubearmorhostpolicies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubearmor-operator-manage-kubearmor-clusterrole
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - nodes
+  - namespaces
+  - configmaps
+  verbs:
+  - get
+  - patch
+  - list
+  - watch
+  - update
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - replicasets
+  - daemonsets
+  - statefulsets
+  verbs:
+  - get
+  - patch
+  - list
+  - watch
+  - update
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - get
+  - patch
+  - list
+  - watch
+  - update
+- apiGroups:
+  - security.kubearmor.com
+  resources:
+  - kubearmorpolicies
+  - kubearmorclusterpolicies
+  - kubearmorhostpolicies
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - delete
+- nonResourceURLs:
+  - /apis
+  - /apis/*
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manage-policies
+rules:
+- apiGroups:
+  - cilium.io
+  resources:
+  - ciliumnetworkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - security.kubearmor.com
+  resources:
+  - discoveredpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - security.kubearmor.com
+  resources:
+  - discoveredpolicies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - security.kubearmor.com
+  resources:
+  - discoveredpolicies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - security.kubearmor.com
+  resources:
+  - kubearmorpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: policy-enforcement-agent
+rules:
+- apiGroups:
+  - cilium.io
+  resources:
+  - ciliumnetworkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - delete
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - delete
+- apiGroups:
+  - security.kubearmor.com
+  resources:
+  - kubearmorpolicies
+  - kubearmorhostpolicies
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - delete
+- apiGroups:
+  - kyverno.io
+  resources:
+  - clusterpolicies
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - delete
+- apiGroups:
+  - admission.accuknox.com
+  resources:
+  - admissionpolicies
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: shared-informer-agent
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - pods
+  - namespaces
+  - services
+  verbs:
+  - get
+  - watch
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - replicasets
+  - statefulsets
+  - daemonsets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: view-cluster-resources
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - pods
+  - services
+  - deployments
+  - namespaces
+  - nodes
+  - replicasets
+  - statefulsets
+  - daemonsets
+  - configmaps
+  - jobs
+  - cronjobs
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: accuknox-multi-cluster-helper
+  name: accuknox-multi-cluster-helper
+  namespace: agents
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: accuknox-multi-cluster-helper
+subjects:
+- kind: ServiceAccount
+  name: accuknox-multi-cluster-helper
+  namespace: agents
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kmux
+  namespace: agents
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kmux
+subjects:
+- kind: ServiceAccount
+  name: kmux
+  namespace: agents
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kubearmor-operator-tls-secrets-rolebinding
+  namespace: kubearmor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubearmor-operator-tls-secrets-role
+subjects:
+- kind: ServiceAccount
+  name: kubearmor-operator
+  namespace: kubearmor
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: agents-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: agents-operator
+subjects:
+- kind: ServiceAccount
+  name: agents-operator
+  namespace: agents
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kmux
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kmux
+subjects:
+- kind: ServiceAccount
+  name: kmux
+  namespace: agents
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubearmor-operator-clusterrole-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubearmor-operator-clusterrole
+subjects:
+- kind: ServiceAccount
+  name: kubearmor-operator
+  namespace: kubearmor
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubearmor-operator-manage-controller-clusterrole-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubearmor-operator-manage-controller-clusterrole
+subjects:
+- kind: ServiceAccount
+  name: kubearmor-operator
+  namespace: kubearmor
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubearmor-operator-manage-kubearmor-clusterrole-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubearmor-operator-manage-kubearmor-clusterrole
+subjects:
+- kind: ServiceAccount
+  name: kubearmor-operator
+  namespace: kubearmor
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: manage-policies
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: manage-policies
+subjects:
+- kind: ServiceAccount
+  name: discovery-engine
+  namespace: agents
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: policy-enforcement-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: policy-enforcement-agent
+subjects:
+- kind: ServiceAccount
+  name: policy-enforcement-agent
+  namespace: agents
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: shared-informer-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: shared-informer-agent
+subjects:
+- kind: ServiceAccount
+  name: shared-informer-agent
+  namespace: agents
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: view-cluster-resources
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view-cluster-resources
+subjects:
+- kind: ServiceAccount
+  name: discovery-engine
+  namespace: agents
+---
+apiVersion: v1
+data:
+  clusterNamePrefix: anthos-testing-multi
+  generatedClusterName: ""
+kind: ConfigMap
+metadata:
+  name: accuknox-multi-cluster-helper
+  namespace: agents
+---
+apiVersion: v1
+data:
+  conf.yaml: "agent:\n- name: feeder-service\n  container: \n  - resource:\n    -
+    type: cpu\n      request:\n        - value: (n/5 + 1)*50\n        - upper-bound:
+    5000\n      limit:\n        - value: (n/5 + 1)*100\n        - upper-bound: 10000\n
+    \   - type: memory\n      request:\n        - value: (n/5 + 1)*100\n        -
+    upper-bound: 10000\n      limit:\n        - value: (n/5 + 1)*200\n        - upper-bound:
+    20000\n- name: shared-informer-agent\n  container: \n  - resource:\n    - type:
+    cpu\n      request:\n        - value: (n/5 + 1)*20\n        - upper-bound: 2000\n
+    \     limit:\n        - value: (n/5 + 1)*50\n        - upper-bound: 5000\n    -
+    type: memory\n      request:\n        - value: (n/5 + 1)*50\n        - upper-bound:
+    5000\n      limit:\n        - value: (n/5 + 1)*100\n        - upper-bound: 10000\n-
+    name: policy-enforcement-agent\n  container: \n  - resource:\n    - type: cpu\n
+    \     request:\n        - value: (n/5 + 1)*10\n        - upper-bound: 1000\n      limit:\n
+    \       - value: (n/5 + 1)*30\n        - upper-bound: 3000\n    - type: memory\n
+    \     request:\n        - value: (n/5 + 1)*20\n        - upper-bound: 2000\n      limit:\n
+    \       - value: (n/5 + 1)*50\n        - upper-bound: 5000\n        \n\nglobal-ns:
+    \"agents\"\nagent-configmap: \"agents-operator\"  \nhealthPort: \"9090\"  \ntokenURL:
+    \n  base: \"https://cwpp.demo.accuknox.com\"\n  path: \"/access-token/api/v1/process\""
+  spire.conf: "agent {\n  data_dir = \"/run/spire/agent\"\n  log_level = \"DEBUG\"\n
+    \ agent_address = \"0.0.0.0\"\n  agent_port = \"9091\"\n  socket_path = \"/run/spire/agent/agent.sock\"\n
+    \ trust_domain = \"accuknox.com\"\n}\n\nplugins {\n  \n  NodeAttestor \"join_token\"
+    {\n  }\n\n  KeyManager \"keymanager-k8s\" {\n    plugin_cmd = \"/config/plugin/keymanager-k8s\"\n
+    \   plugin_data {\n      namespace = \"agents\"\n      secretname = \"spire-agent-secret\"\n
+    \   }\n  }\n\n  WorkloadAttestor \"k8s_sat\" {\n    plugin_cmd = \"/config/plugin/k8s-sat\"\n
+    \   plugin_data {\n    }\n  }\n}\n\nhealth_checks {\n  listener_enabled = true\n
+    \ bind_address = \"0.0.0.0\"\n  bind_port = \"9090\"\n  live_path = \"/live\"\n
+    \ ready_path = \"/ready\"\n}\n"
+kind: ConfigMap
+metadata:
+  name: agents-operator
+  namespace: agents
+---
+apiVersion: v1
+data:
+  AZURE_SENTINEL_ALERTS_ENABLED: "false"
+  AZURE_SENTINEL_ENABLED: "false"
+  AZURE_SENTINEL_GROUP_NAME: ""
+  AZURE_SENTINEL_GROUP_VALUE: ""
+  AZURE_SENTINEL_LOGS_ENABLED: "false"
+  AZURE_SENTINEL_URL: ""
+kind: ConfigMap
+metadata:
+  name: azuresentinel-vars
+  namespace: agents
+---
+apiVersion: v1
+data:
+  HUBBLE_ENABLED: "false"
+  HUBBLE_PORT: "80"
+  HUBBLE_URL: hubble-relay.kube-system.svc.cluster.local
+kind: ConfigMap
+metadata:
+  name: cilium-vars
+  namespace: agents
+---
+apiVersion: v1
+data:
+  app.yaml: |2-
+
+    discover:
+      consumer:
+        buffer-limit:
+          network: 100
+          system: 1000
+        time-limit: 1
+        topic: summary-v2
+      k8s:
+        enable: true
+      policy-client:
+        server: 127.0.0.1:8090
+      processor:
+        cores: 50
+        cron-job-interval: 0h05m00s
+        delay-cron-job: 0h03m00s
+        npu: 1
+        spu: 1
+      ruleConfig:
+        rules: process,network
+      sink:
+        channel-size: 100
+        topic: policy-v1
+    logging:
+      level: info
+  kmux.yaml: |2-
+
+    kmux:
+      sink:
+        stream: rabbitmq
+      source:
+        stream: rabbitmq
+    rabbitmq:
+      exchange:
+        auto-delete: true
+        durable: true
+        name: dev2
+        type: direct
+      queue:
+        auto-delete: true
+        durable: true
+        name: ""
+      server: 127.0.0.1:5672
+kind: ConfigMap
+metadata:
+  name: discovery-engine-discover
+  namespace: agents
+---
+apiVersion: v1
+data:
+  app.yaml: |2-
+
+    hardening:
+      cron-job-time-interval: 1h00m00s
+      delay-cron-job: 0h05m00s
+      download-templates: false
+      enabled: true
+      exclude-namespaces:
+        kube-system: true
+        kubearmor: true
+      filter-enabled: false
+      k8s:
+        enable: true
+      recommend-host-policy: true
+      state-agent:
+        port: "32771"
+      template-version: 0.2.6
+      topic: policy-v1
+  kmux.yaml: |2-
+
+    kmux:
+      sink:
+        stream: rabbitmq
+    rabbitmq:
+      exchange:
+        auto-delete: true
+        durable: true
+        name: dev2
+        type: direct
+      queue:
+        auto-delete: true
+        durable: true
+        name: ""
+      server: localhost:5672
+kind: ConfigMap
+metadata:
+  name: discovery-engine-hardening
+  namespace: agents
+---
+apiVersion: v1
+data:
+  app.yaml: |2-
+
+    database:
+      credentials: local
+      driver: sqlite
+      name:
+        policy-db: /Offloader/accuknox-policy.db
+        summary-db: /Offloader/accuknox-summary.db
+    offloader:
+      policy:
+        enabled: true
+        merge_policy: false
+        retention:
+          enabled: true
+          interval: 7
+        topic: policy-v1
+      server:
+        enabled: true
+        host: 0.0.0.0
+        port: 8090
+      summary:
+        enabled: true
+        retention:
+          enabled: true
+          interval: 1
+        topic: summary-v2
+  kmux.yaml: |2-
+
+    kmux:
+      source:
+        stream: rabbitmq
+    rabbitmq:
+      exchange:
+        auto-delete: true
+        durable: true
+        name: dev2
+        type: direct
+      queue:
+        auto-delete: true
+        durable: true
+        name: ""
+      server: localhost:5672
+kind: ConfigMap
+metadata:
+  name: discovery-engine-offloader
+  namespace: agents
+---
+apiVersion: v1
+data:
+  app.yaml: |2-
+
+    summary-engine:
+      cron-interval: 0h01m0s
+      enabled: true
+      exclude-events:
+        operation:
+          file: false
+          network: false
+          process: false
+      exclude-namespaces:
+        kubearmor: true
+      file-aggregation: true
+      k8s:
+        enable: true
+      threshold: 10000
+      topic:
+        summary-event: summary-v2
+    watcher:
+      enabled: true
+      kubearmor-event-type:
+        alerts: true
+        logs: true
+      kubearmor-relay:
+        enabled: false
+        name: relay-1
+        port: ""
+        url: ""
+  kmux.yaml: |2-
+
+    kmux:
+      sink:
+        stream: rabbitmq
+    rabbitmq:
+      exchange:
+        auto-delete: true
+        durable: true
+        name: dev2
+        type: direct
+      server: localhost:5672
+kind: ConfigMap
+metadata:
+  name: discovery-engine-sumengine
+  namespace: agents
+---
+apiVersion: v1
+data:
+  DISCOVERYENGINE_ENABLED: "true"
+  DISCOVERYENGINE_PORT: "9089"
+  DISCOVERYENGINE_URL: discovery-engine.agents.svc.cluster.local
+  DISCOVERYENGINE_VERSION: "2"
+kind: ConfigMap
+metadata:
+  name: discovery-engine-vars
+  namespace: agents
+---
+apiVersion: v1
+data:
+  config.yaml: "kmux:\n  sink:\n    stream: knox-gateway\n  source:\n    stream: rabbitmq\n
+    \ security: spire\n    \nknox-gateway:\n  server: knox-gw.demo.accuknox.com:3000\n\nspire:
+    \n  spiffeID:\n    format: \"spiffe://<domainName>/<WSID>/<ClusterID>/<componentName>\"\n\n\nrabbitmq:\n
+    \ server: \"discovery-engine.agents.svc.cluster.local:5672\"\n  exchange:\n    name:
+    \"dev2\" \n    type: \"direct\"\n    durable: true\n    auto-delete: true\n  queue:\n
+    \   name: \"\"\n    durable: true\n    auto-delete: true\n  debug: false"
+kind: ConfigMap
+metadata:
+  name: kmux
+  namespace: agents
+---
+apiVersion: v1
+data:
+  KUBEARMOR_ALERTS: ""
+  KUBEARMOR_ENABLED: "true"
+  KUBEARMOR_LOGS: sdf
+  KUBEARMOR_PORT: "32767"
+  KUBEARMOR_URL: kubearmor.kube-system.svc.cluster.local
+kind: ConfigMap
+metadata:
+  name: kubearmor-vars
+  namespace: agents
+---
+apiVersion: v1
+data:
+  CLUSTER_NAME: abc
+  cluster_id: abc
+  cluster_name: abc
+  tenant_id: abc
+  workspace_id: abc
+kind: ConfigMap
+metadata:
+  name: onboarding-vars
+  namespace: agents
+---
+apiVersion: v1
+data:
+  application.yaml: "endpoint:\n  urlendpoint: /pps/api/v1/policy-provider/fetch-policy\n
+    \ baseurlendpoint: https://pps.demo.accuknox.com\n\nstatusendpoint:\n  endpoint:
+    https://pps.demo.accuknox.com/pps/api/v1/policy-provider/change-status-policy\n
+    \ \nsecret:\n  key2: 511dfbdb941561cbea02ffaf1043df6b47512e01f75d5ae5932cd9a36b4f07c0\n\nsyncuptime:\n
+    \ t: 5\n\nannotation:\n  statusendpoint: /pps/api/v1/policy-provider/update-annotation-status\n
+    \ annotationendpoint: /pps/api/v1/policy-provider/fetch-annotations\n  basepath:
+    https://pps.demo.accuknox.com\n\nspire:\n  enable: true\n  agent: \"agents-operator.agents.svc.cluster.local:9091\"\n\npsaLabels:\n
+    \ basePath: https://pps.demo.accuknox.com\n  fetchPSALabels: /pps/api/v1/security-admission/fetch-psa-labels\n
+    \ updatePSALabelStatus: /pps/api/v1/security-admission/update-psa-labels-status\n\npolicy-watcher:\n
+    \ enable: true\n  topic: discovery/custom-policy-v1\n  watchers: \n  - \"KubeArmorPolicy\"\n
+    \ - \"KubeArmorHostPolicy\"\n  - \"NetworkPolicy\""
+kind: ConfigMap
+metadata:
+  name: policy-enforcement-agent
+  namespace: agents
+---
+apiVersion: v1
+data:
+  app.yaml: "spire:\n  enable: true\n\n  agent: \"agents-operator.agents.svc.cluster.local:9091\"\nkmux-topic:
+    cluster-entity/shared-event    \nkmux-topic-prefix: \n\nheartbeat:\n  interval:
+    5m\npsa:\n  violation-topic: admissionevents\n  audit-webhook-port: 8080\nknoxguard:\n
+    \ topic: knoxguardevents"
+kind: ConfigMap
+metadata:
+  name: shared-informer-agent
+  namespace: agents
+---
+apiVersion: v1
+data:
+  SPIRE_AGENT_URL: agents-operator.agents.svc.cluster.local:9091
+  SPIRE_ENABLED: "true"
+kind: ConfigMap
+metadata:
+  name: spire-vars
+  namespace: agents
+---
+apiVersion: v1
+data:
+  SPLUNK_ALERTS_ENABLED: "false"
+  SPLUNK_FEEDER_ENABLED: "false"
+  SPLUNK_FEEDER_INDEX: ""
+  SPLUNK_FEEDER_SOURCE: ""
+  SPLUNK_FEEDER_SOURCE_TYPE: ""
+  SPLUNK_FEEDER_TOKEN: ""
+  SPLUNK_FEEDER_URL: ""
+  SPLUNK_LOGS_ENABLED: "false"
+kind: ConfigMap
+metadata:
+  name: splunk-vars
+  namespace: agents
+---
+apiVersion: v1
+data: {}
+kind: Secret
+metadata:
+  name: spire-agent-secret
+  namespace: agents
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: agents-operator
+  name: agents-operator
+  namespace: agents
+spec:
+  ports:
+  - name: health-check
+    port: 9090
+    protocol: TCP
+    targetPort: 9090
+  - name: spire-agent
+    port: 9091
+    protocol: TCP
+    targetPort: 9091
+  selector:
+    app: agents-operator
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: discovery-engine
+  name: discovery-engine
+  namespace: agents
+spec:
+  ports:
+  - name: grpc
+    port: 8090
+    protocol: TCP
+    targetPort: 8090
+  - name: amqp
+    port: 5672
+    protocol: TCP
+    targetPort: 5672
+  selector:
+    app: discovery-engine
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: agents-operator
+  name: agents-operator
+  namespace: agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agents-operator
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: agents-operator
+    spec:
+      containers:
+      - env:
+        - name: join_token
+          value: ""
+        - name: spire_address
+          value: spire.demo.accuknox.com
+        - name: spire_port
+          value: "8081"
+        - name: spire_enable
+          value: "true"
+        - name: access_token
+          value: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzLXRva2VuIiwiZXhwIjoxNzI5NjQxNjAwLCJqdGkiOiJlYTRjZTUyYmJiOTA0ZmE3OTJmOTRhMzBlNjRlOWVjZSIsInVzZXJfaWQiOjExOTE5LCJuYW1lIjoiYW50aG9zLXRlc3QiLCJleHBpcnlfZGF0ZSI6IjIwMjQtMTAtMjMiLCJtYXhfY2x1c3RlcnNfYWxsb3dlZCI6NSwidGVuYW50LWlkIjoxNjcsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJ2aWV3X3NjYW5zIiwicnVuX3NjYW5zIiwidGFnX3NjYW5zIiwidmlld19ub3RpZmljYXRpb25zIiwiY3JlYXRlX25vdGlmaWNhdGlvbnMiLCJkZWxldGVfbm90aWZpY2F0aW9ucyIsInZpZXdfZmluZGluZ3MiLCJjcmVhdGVfZmluZGluZ3NfY29uZmlnIiwiZGVsZXRlX2ZpbmRpbmdzX2NvbmZpZyIsImZpbmRpbmdzX2FkZF90b19ncm91cCIsImZpbmRpbmdzX2FkZF90b190YXJnZXQiLCJ1cGRhdGVfZmluZGluZ3MiLCJpZ25vcmVfZmluZGluZ3MiLCJleHBvcnRfZmluZGluZ3MiLCJhZGRfdGFnX2ZpbmRpbmdzIiwidmlld19maW5kaW5nX2NvbW1lbnRzIiwiY3JlYXRlX2ZpbmRpbmdfY29tbWVudHMiLCJkZWxldGVfZmluZGluZ19jb21tZW50cyIsInZpZXdfY2xvdWRfYWNjb3VudHMiLCJjcmVhdGVfY2xvdWRfYWNjb3VudHMiLCJkZWxldGVfY2xvdWRfYWNjb3VudHMiLCJjcmVhdGVfY29uZGl0aW9uIiwiZGVsZXRlX2NvbmRpdGlvbiIsInZpZXdfbWluaW9ucyIsImNyZWF0ZV9taW5pb25zIiwiZGVsZXRlX21pbmlvbnMiLCJ2aWV3X21vZHVsZXMiLCJ2aWV3X2Z1bmN0aW9ucyIsInZpZXdfZXhwZWN0ZWRfdmFyaWFibGUiLCJ2aWV3X2NvbW1lbnRzX2FuYWx5c2lzIiwiY3JlYXRlX2NvbW1lbnRzX2FuYWx5c2lzIiwiZGVsZXRlX2NvbW1lbnRzX2FuYWx5c2lzIiwidmlld19jaGVja3MiLCJ2aWV3X3VzZXJzIiwiY3JlYXRlX3VzZXJzIiwiZGVsZXRlX3VzZXJzIiwiZGVsZXRlX3NjYW5zIiwidmlld190YWdzIiwiZGVsZXRlX3RhZ3MiLCJkZWxldGVfZ3JvdXBzIiwidmlld19kYXRhbGlzdCIsImRhdGFsaXN0X2FkZF90b19ncm91cCIsImV4cG9ydF9kYXRhbGlzdCIsInZpZXdfYmFzZWxpbmVzIiwiY3JlYXRlX2Jhc2VsaW5lcyIsImRlbGV0ZV9iYXNlbGluZXMiLCJ2aWV3X3RhcmdldHMiLCJjcmVhdGVfdGFyZ2V0cyIsImRlbGV0ZV90YXJnZXRzIiwidmlld190aWNrZXRzIiwiY3JlYXRlX3RpY2tldHMiLCJkZWxldGVfdGlja2V0cyIsInZpZXdfcmVwb3J0cyIsImNyZWF0ZV9yZXBvcnRzIiwiZGVsZXRlX3JlcG9ydHMiLCJ2aWV3X21vbml0b3JzIiwiY3JlYXRlX21vbml0b3JzIiwiZGVsZXRlX21vbml0b3JzIiwidmlld19zZXR0aW5ncyIsImNyZWF0ZV9zZXR0aW5ncyIsImRlbGV0ZV9zZXR0aW5ncyIsInZpZXdfcGxheWJvb2tzIiwiY3JlYXRlX3BsYXlib29rcyIsImRlbGV0ZV9wbGF5Ym9va3MiLCJ2aWV3X2NvbmRpdGlvbiIsInZpZXdfY29udHJvbHMiLCJjcmVhdGVfY29udHJvbHMiLCJkZWxldGVfY29udHJvbHMiLCJ2aWV3X2VudGl0aWVzIiwiZGF0YWxpc3RfYWRkX3RvX3RhcmdldCIsImNyZWF0ZV9kYXRhbGlzdF9jb25maWciLCJkZWxldGVfZGF0YWxpc3RfY29uZmlnIiwidmlld19hc3NldHMiLCJhc3NldHNfYWRkX3RhZyIsImFzc2V0c191cGRhdGVfYmFzZWxpbmVzIiwidmlld19sYWJlbHMiLCJjcmVhdGVfbGFiZWxzIiwiZGVsZXRlX2xhYmVscyIsInJlcG9zaXRvcmllc192aWV3IiwicmVwb3NpdG9yaWVzX2NyZWF0ZSIsInJlcG9zaXRvcmllc19kZWxldGUiLCJ2aWV3X2Fza2FkYV9jaGF0Iiwidmlld19hc2thZGFfY29udmVyc2F0aW9uIiwidmlld19hc2thZGFfZmVlZGJhY2siLCIiLCJjb21wbGlhbmNlX3N1bW1hcnkiLCJhY2Nlc3NfdG9rZW4iLCJ2aWV3X2NzcG1fam9iX3N0YXR1cyIsImN5YmVyYWlkZSIsImxpc3RfY29udHJvbHNfYWNjb3VudF9pZHMiLCJkZWZhdWx0X2ZpbHRlcl9saXN0IiwibGlzdF9jb250cm9sc19yZWdpb24iLCJjcmVhdGVfcGVyc2lzdGVudF9jYWNoZV9zZXQiLCJkZWxldGVfcGVyc2lzdGVudF9jYWNoZV9zZXQiLCJ2aWV3X3BlcnNpc3RlbnRfY2FjaGVfc2V0Iiwic2NyZWVuIiwidmlld19ncm91cHMiLCJjcmVhdGVfZ3JvdXBzIiwiY3dwcF9hZGRfdGFncyIsImN3cHBfZGVsZXRlX3RhZ3MiLCJnZXRfY2hhbm5lbF9pbnRlZ3JhdGlvbnMiLCJ2aWV3X2Fzc2V0X3BhbmVsIiwiZ2V0X2FwcF9iZWhhdmlvciIsImFwcHJvdmVfcG9saWN5IiwiY3dwcF9nZXRfdGFncyIsImRlbGV0ZV9kYXRhcGlwZWxpbmVfZmlsdGVycyIsImRlbGV0ZV9wb2xpY3kiLCJnZXRfdHJpZ2dlcnNfZmlsdGVycyIsInNhdmVfZGF0YXBpcGVsaW5lX2ZpbHRlcnMiLCJzYXZlX2NoYW5uZWxfaW50ZWdyYXRpb25zIiwiY2hhbmdlX3BvbGljeV9zdGF0dXMiLCJnZXRfZGF0YXBpcGVsaW5lX3RlbGVtZXRyeSIsImN3cHBfYWRkX2xhYmVscyIsImN3cHBfYWRkX2xhYmVsX2VudGl0aWVzIiwiZGVsZXRlX2NoYW5uZWxfaW50ZWdyYXRpb25zIiwiZ2V0X2RhdGFwaXBlbGluZV9maWx0ZXJzIiwiY3dwcF9nZXRfcmVnaXN0cnkiLCJjd3BwX2dldF9sYWJlbHMiLCJjd3BwX2FkZF9yZWdpc3RyeSIsImRlbGV0ZV9kYXRhcGlwZWxpbmVfdHJpZ2dlcnMiLCJnZXRfYWxsX2NsdXN0ZXJzIiwiY3dwcF9kZWxldGVfbGFiZWxfZW50aXRpZXMiLCJjd3BwX2dldF9yZWdpc3RyeV9zY2FucyIsInVwZGF0ZV9kYXRhcGlwZWxpbmVfZmlsdGVycyIsImN3cHBfZGVsZXRlX3JlZ2lzdHJ5IiwiZGVsZXRlX3RyaWdnZXJzX2ZpbHRlcnMiLCJzYXZlX3RyaWdnZXJzX2ZpbHRlcnMiLCJjd3BwX2VkaXRfbGFiZWxzIiwiaWdub3JlX3BvbGljeSIsImN3cHBfZGVsZXRlX2xhYmVscyIsImN3cHBfZ2V0X2xhYmVsX2VudGl0aWVzIiwidXBkYXRlX2RhdGFwaXBlbGluZV90cmlnZ2VycyIsInRlc3RfY2hhbm5lbF9pbnRlZ3JhdGlvbnMiLCJhZGRfcG9saWN5IiwiY3JlYXRlX2RhdGFwaXBlbGluZV90cmlnZ2VycyIsImdldF9wb2xpY3kiLCJnZXRfZGF0YXBpcGVsaW5lX3RyaWdnZXJzIiwiZWRpdF9wb2xpY3kiLCJjd3BwX2VkaXRfcmVnaXN0cnkiLCJkYXNoYm9hcmQiLCJjcmVhdGVfdGFncyJdfSwiaXNzIjoiY3NwbS5kZW1vLmFjY3Vrbm94LmNvbSJ9.H_q83kOtlkpVCrWQDu9OwRp4OJqGgz1cVzj-sYc8p-UiR9vLpKF9kt2c83ozKl_uCwE6oqNKR_0YiiYvAn1WP3riGbijCsI9WBvzU9FiRimDTtbvg6KFLIT-M9b2r6KzZQAKgww0Q2bJuuOrJShSo2fLYLk-ndGzksXdOber9AzidzDqbscP21tdxJpQoRQ_jYqHKiPJBndZNcgclEYplMuL8ZAvvd-IwLF1Vo-IHszCi8i3Zp5SLuJNTuNcwS3aWXpYSvbzWfAO5gogVeKNfsf0jXQGOgUEXy6IncJkQZOYmDo8Fg-jThaXMYro3e5-C1zPjGz_8H1yayqz3Q7zgQ
+        - name: SPIRE_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: SPIRE_ENABLED
+              name: spire-vars
+        - name: CLUSTER_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: CLUSTER_NAME
+              name: onboarding-vars
+        - name: cluster_name
+          valueFrom:
+            configMapKeyRef:
+              key: cluster_name
+              name: onboarding-vars
+        - name: cluster_id
+          valueFrom:
+            configMapKeyRef:
+              key: cluster_id
+              name: onboarding-vars
+        - name: tenant_id
+          valueFrom:
+            configMapKeyRef:
+              key: tenant_id
+              name: onboarding-vars
+        - name: workspace_id
+          valueFrom:
+            configMapKeyRef:
+              key: workspace_id
+              name: onboarding-vars
+        image: accuknox/agents-operator:v0.2.3
+        imagePullPolicy: Always
+        name: agents-operator
+        readinessProbe:
+          failureThreshold: 1
+          httpGet:
+            path: /ready
+            port: 9090
+          initialDelaySeconds: 0
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+        volumeMounts:
+        - mountPath: /conf
+          name: agents-operator
+          readOnly: true
+        - mountPath: /run/spire/agent
+          name: spire-agent
+      serviceAccountName: agents-operator
+      volumes:
+      - configMap:
+          name: agents-operator
+        name: agents-operator
+      - emptyDir: {}
+        name: spire-agent
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: discovery-engine
+  name: discovery-engine
+  namespace: agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discovery-engine
+  template:
+    metadata:
+      labels:
+        app: discovery-engine
+    spec:
+      containers:
+      - args:
+        - --config
+        - /var/lib/sumengine/app.yaml
+        - --kmux-config
+        - /var/lib/sumengine/kmux.yaml
+        image: accuknox/discovery-engine-sumengine:v0.1.29
+        imagePullPolicy: Always
+        name: summary-engine
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /var/lib/sumengine/
+          name: config-sumengine
+          readOnly: true
+      - image: rabbitmq:3.12.2-management
+        imagePullPolicy: Always
+        name: rabbitmq
+        ports:
+        - containerPort: 5672
+          name: amqp
+        - containerPort: 15672
+          name: management
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+      - args:
+        - --config
+        - /var/lib/discover/app.yaml
+        - --kmux-config
+        - /var/lib/discover/kmux.yaml
+        env:
+        - name: ENABLE_GRPC
+          value: "false"
+        image: accuknox/discovery-engine-discover:v0.1.29
+        imagePullPolicy: Always
+        name: discover
+        ports:
+        - containerPort: 8090
+          name: grpc
+        resources:
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        volumeMounts:
+        - mountPath: /var/lib/discover/
+          name: config-discover
+          readOnly: true
+      - args:
+        - start
+        - --config
+        - /var/lib/hardening/config/app.yaml
+        - --kmux-config
+        - /var/lib/hardening/config/kmux.yaml
+        - --templates
+        - /var/lib/hardening/resources/policy_templates.zip
+        image: accuknox/discovery-engine-hardening:v0.1.29
+        imagePullPolicy: Always
+        name: hardening
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /var/lib/hardening/config/
+          name: config-hardening
+          readOnly: true
+      serviceAccountName: discovery-engine
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          name: discovery-engine-sumengine
+        name: config-sumengine
+      - configMap:
+          name: discovery-engine-hardening
+        name: config-hardening
+      - configMap:
+          name: discovery-engine-discover
+        name: config-discover
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: feeder-service
+  name: feeder-service
+  namespace: agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: feeder-service
+  template:
+    metadata:
+      labels:
+        app: feeder-service
+    spec:
+      containers:
+      - env:
+        - name: KMUX_ENABLED
+          value: "true"
+        - name: IGNORE_SUMMARY_EVENTS
+          value: Network:AF_UNIX,AF_NETLINK
+        - name: SPIRE_AGENT_URL
+          value: agents-operator.agents.svc.cluster.local:9091
+        - name: DISCOVERYENGINE_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: DISCOVERYENGINE_ENABLED
+              name: discovery-engine-vars
+        - name: DISCOVERYENGINE_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: DISCOVERYENGINE_PORT
+              name: discovery-engine-vars
+        - name: DISCOVERYENGINE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              key: DISCOVERYENGINE_VERSION
+              name: discovery-engine-vars
+        - name: SPIRE_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: SPIRE_ENABLED
+              name: spire-vars
+        - name: SPLUNK_ALERTS_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: SPLUNK_ALERTS_ENABLED
+              name: splunk-vars
+        - name: SPLUNK_FEEDER_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: SPLUNK_FEEDER_ENABLED
+              name: splunk-vars
+        - name: SPLUNK_FEEDER_INDEX
+          value: ""
+        - name: SPLUNK_FEEDER_SOURCE
+          value: ""
+        - name: SPLUNK_FEEDER_SOURCE_TYPE
+          value: ""
+        - name: SPLUNK_FEEDER_TOKEN
+          value: ""
+        - name: SPLUNK_FEEDER_URL
+          value: ""
+        - name: SPLUNK_LOGS_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: SPLUNK_LOGS_ENABLED
+              name: splunk-vars
+        - name: AZURE_SENTINEL_ALERTS_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: AZURE_SENTINEL_ALERTS_ENABLED
+              name: azuresentinel-vars
+        - name: AZURE_SENTINEL_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: AZURE_SENTINEL_ENABLED
+              name: azuresentinel-vars
+        - name: AZURE_SENTINEL_GROUP_NAME
+          value: ""
+        - name: AZURE_SENTINEL_GROUP_VALUE
+          value: ""
+        - name: AZURE_SENTINEL_LOGS_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: AZURE_SENTINEL_LOGS_ENABLED
+              name: azuresentinel-vars
+        - name: AZURE_SENTINEL_URL
+          value: ""
+        - name: KUBEARMOR_ALERTS
+          value: ""
+        - name: KUBEARMOR_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: KUBEARMOR_ENABLED
+              name: kubearmor-vars
+        - name: KUBEARMOR_LOGS
+          valueFrom:
+            configMapKeyRef:
+              key: KUBEARMOR_LOGS
+              name: kubearmor-vars
+        - name: KUBEARMOR_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: KUBEARMOR_PORT
+              name: kubearmor-vars
+        - name: KUBEARMOR_URL
+          valueFrom:
+            configMapKeyRef:
+              key: KUBEARMOR_URL
+              name: kubearmor-vars
+        - name: CLUSTER_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: CLUSTER_NAME
+              name: onboarding-vars
+        - name: cluster_name
+          valueFrom:
+            configMapKeyRef:
+              key: cluster_name
+              name: onboarding-vars
+        - name: cluster_id
+          valueFrom:
+            configMapKeyRef:
+              key: cluster_id
+              name: onboarding-vars
+        - name: tenant_id
+          valueFrom:
+            configMapKeyRef:
+              key: tenant_id
+              name: onboarding-vars
+        - name: workspace_id
+          valueFrom:
+            configMapKeyRef:
+              key: workspace_id
+              name: onboarding-vars
+        - name: HUBBLE_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: HUBBLE_ENABLED
+              name: cilium-vars
+        - name: HUBBLE_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: HUBBLE_PORT
+              name: cilium-vars
+        - name: HUBBLE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: HUBBLE_URL
+              name: cilium-vars
+        image: accuknox/feeder-service:v0.5.4
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - curl
+            - -Iv
+            - spire.demo.accuknox.com:9090/live
+          failureThreshold: 1
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 15
+        name: feeder-service
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+        volumeMounts: null
+      serviceAccountName: kmux
+      volumes: null
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: policy-enforcement-agent
+  name: policy-enforcement-agent
+  namespace: agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: policy-enforcement-agent
+  template:
+    metadata:
+      labels:
+        app: policy-enforcement-agent
+    spec:
+      containers:
+      - args:
+        - --config-path=/var/lib/pea
+        env:
+        - name: CLUSTER_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: CLUSTER_NAME
+              name: onboarding-vars
+        - name: cluster_name
+          valueFrom:
+            configMapKeyRef:
+              key: cluster_name
+              name: onboarding-vars
+        - name: cluster_id
+          valueFrom:
+            configMapKeyRef:
+              key: cluster_id
+              name: onboarding-vars
+        - name: tenant_id
+          valueFrom:
+            configMapKeyRef:
+              key: tenant_id
+              name: onboarding-vars
+        - name: workspace_id
+          valueFrom:
+            configMapKeyRef:
+              key: workspace_id
+              name: onboarding-vars
+        image: accuknox/policy-enforcement-agent:v0.4.3
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - curl
+            - -Iv
+            - spire.demo.accuknox.com:9090/live
+          failureThreshold: 1
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 15
+        name: policy-enforcement-agent
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+        volumeMounts:
+        - mountPath: /var/lib/pea/application.yaml
+          name: policy-enforcement-agent
+          subPath: application.yaml
+      serviceAccountName: policy-enforcement-agent
+      volumes:
+      - configMap:
+          defaultMode: 484
+          name: policy-enforcement-agent
+        name: policy-enforcement-agent
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: shared-informer-agent
+  name: shared-informer-agent
+  namespace: agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shared-informer-agent
+  template:
+    metadata:
+      labels:
+        app: shared-informer-agent
+    spec:
+      containers:
+      - args:
+        - -config-path=/home/sia/conf/
+        env:
+        - name: CLUSTER_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: CLUSTER_NAME
+              name: onboarding-vars
+        - name: cluster_name
+          valueFrom:
+            configMapKeyRef:
+              key: cluster_name
+              name: onboarding-vars
+        - name: cluster_id
+          valueFrom:
+            configMapKeyRef:
+              key: cluster_id
+              name: onboarding-vars
+        - name: tenant_id
+          valueFrom:
+            configMapKeyRef:
+              key: tenant_id
+              name: onboarding-vars
+        - name: workspace_id
+          valueFrom:
+            configMapKeyRef:
+              key: workspace_id
+              name: onboarding-vars
+        image: accuknox/shared-informer-agent:v0.5.6
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - curl
+            - -Iv
+            - spire.demo.accuknox.com:9090/live
+          failureThreshold: 1
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 15
+        name: shared-informer-agent
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+        volumeMounts:
+        - mountPath: /home/sia/conf/app.yaml
+          name: shared-informer-agent
+          subPath: app.yaml
+      serviceAccountName: shared-informer-agent
+      volumes:
+      - configMap:
+          defaultMode: 484
+          name: shared-informer-agent
+        name: shared-informer-agent
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ubuntu
+  name: ubuntu
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ubuntu
+  template:
+    metadata:
+      labels:
+        app: ubuntu
+    spec:
+      containers:
+      - command:
+        - sleep
+        - infinity
+        image: ubuntu
+        name: ubuntu
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    kubearmor-app: kubearmor-operator
+  name: kubearmor-operator
+  namespace: kubearmor
+spec:
+  selector:
+    matchLabels:
+      kubearmor-app: kubearmor-operator
+  template:
+    metadata:
+      labels:
+        kubearmor-app: kubearmor-operator
+    spec:
+      containers:
+      - args:
+        - --initDeploy=true
+        env:
+        - name: KUBEARMOR_OPERATOR_NS
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: kubearmor/kubearmor-operator:v1.4.1
+        imagePullPolicy: IfNotPresent
+        name: kubearmor-operator
+      serviceAccountName: kubearmor-operator
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: accuknox-multi-cluster-helper
+  name: accuknox-multi-cluster-helper
+  namespace: agents
+spec:
+  template:
+    spec:
+      containers:
+      - args:
+        - |
+          if [ -n "$CLUSTER_NAME_PREFIX" ] && [ -z "$GENERATED_CLUSTER_NAME" ]; then
+            NEW_VALUE="$CLUSTER_NAME_PREFIX-$(date +%Y%m%d%H%M%S)"
+            printf "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: accuknox-multi-cluster-helper\n  namespace: $NAMESPACE\ndata:\n  generatedClusterName: \"%s\"" "$NEW_VALUE" | kubectl apply -f -
+
+            kubectl patch configmap onboarding-vars -n $NAMESPACE --type='json' -p='[{"op": "replace", "path": "/data/CLUSTER_NAME", "value": $CLUSTER_NAME_PREFIX}]'
+            kubectl patch configmap onboarding-vars -n $NAMESPACE --type='json' -p='[{"op": "replace", "path": "/data/cluster_name", "value": $CLUSTER_NAME_PREFIX}]'
+
+            kubectl rollout restart deployment agents-operator -n $NAMESPACE
+            kubectl rollout restart deployment policy-enforcement-agent -n $NAMESPACE
+            kubectl rollout restart deployment feeder-service -n $NAMESPACE
+            kubectl rollout restart deployment shared-informer-agent -n $NAMESPACE
+          fi
+          # sleep infinity
+        command:
+        - /bin/sh
+        - -c
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CLUSTER_NAME_PREFIX
+          valueFrom:
+            configMapKeyRef:
+              key: clusterNamePrefix
+              name: accuknox-multi-cluster-helper
+        - name: GENERATED_CLUSTER_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: generatedClusterName
+              name: accuknox-multi-cluster-helper
+        image: bitnami/kubectl:1.31
+        name: accuknox-multi-cluster-helper
+      restartPolicy: Never
+      serviceAccountName: accuknox-multi-cluster-helper
+---
+apiVersion: operator.kubearmor.com/v1
+kind: KubeArmorConfig
+metadata:
+  labels:
+    app.kubernetes.io/created-by: kubearmoroperator
+    app.kubernetes.io/instance: kubearmorconfig-sample
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubearmorconfig
+    app.kubernetes.io/part-of: kubearmoroperator
+  name: kubearmorconfig-default
+  namespace: kubearmor
+spec:
+  alertThrottling: true
+  defaultCapabilitiesPosture: audit
+  defaultFilePosture: audit
+  defaultNetworkPosture: audit
+  defaultVisibility: process,network
+  enableStdOutAlerts: false
+  enableStdOutLogs: false
+  enableStdOutMsgs: false
+  kubearmorControllerImage:
+    image: kubearmor/kubearmor-controller
+    imagePullPolicy: Always
+  kubearmorImage:
+    image: kubearmor/kubearmor:stable
+    imagePullPolicy: Always
+  kubearmorInitImage:
+    image: kubearmor/kubearmor-init:stable
+    imagePullPolicy: Always
+  kubearmorRelayImage:
+    image: kubearmor/kubearmor-relay-server
+    imagePullPolicy: Always
+  maxAlertPerSec: 10
+  seccompEnabled: false
+  throttleSec: 30
+---
+apiVersion: security.kubearmor.com/v1
+kind: KubeArmorPolicy
+metadata:
+  name: block-pkg-mgmt-tools-exec
+  namespace: default
+spec:
+  process:
+    matchPaths:
+    - action: Block
+      path: /usr/bin/apt
+      severity: 1
+  selector:
+    matchLabels:
+      app: ubuntu
