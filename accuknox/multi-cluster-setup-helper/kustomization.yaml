@@ -11,9 +11,9 @@ patches:
 - patch: |-
     apiVersion: v1
     data:
-      clusterNamePrefix: "anthos-testing-multi"                         # cluster name prefix
+      clusterNamePrefix: "anthos-testing-multi-cluster"                         # update the prefix for cluster name 
     kind: ConfigMap
     metadata:
       name: accuknox-multi-cluster-helper
 
-namespace: agents # should be same as accuknox-agents
+namespace: agents # should be same as accuknox-agents' namespace
