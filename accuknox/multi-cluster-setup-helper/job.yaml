@@ -5,31 +5,33 @@ metadata:
     app: accuknox-multi-cluster-helper
   name: accuknox-multi-cluster-helper
 spec:
-  serviceAccountName: accuknox-multi-cluster-helper
-  containers:
-    - name: accuknox-multi-cluster-helper
-      image: bitnami/kubectl:1.31
-      env:
-      - name: NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
-      - name: CLUSTER_NAME_PREFIX
-        valueFrom:
-          configMapKeyRef:
-            name: accuknox-multi-cluster-helper
-            key: clusterNamePrefix
-      - name: GENERATED_CLUSTER_NAME
-        valueFrom:
-          configMapKeyRef:
-            name: accuknox-multi-cluster-helper
-            key: generatedClusterName
-      command: ["/bin/sh", "-c"]
-      args:
-        - |
-          if [ -n "$CLUSTER_NAME_PREFIX" ] && [ -z "$GENERATED_CLUSTER_NAME" ]; then
-            NEW_VALUE="dynamicValue-$(date +%Y%m%d%H%M%S)"
-            printf "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: accuknox-multi-cluster-helper\n  namespace: $NAMESPACE\ndata:\n  generatedClusterName: \"%s\"" "$NEW_VALUE" | kubectl apply -f -
-          fi
-          sleep infinity
-  restartPolicy: Never
+  template:
+    spec:
+      serviceAccountName: accuknox-multi-cluster-helper
+      containers:
+        - name: accuknox-multi-cluster-helper
+          image: bitnami/kubectl:1.31
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: CLUSTER_NAME_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: accuknox-multi-cluster-helper
+                  key: clusterNamePrefix
+            - name: GENERATED_CLUSTER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: accuknox-multi-cluster-helper
+                  key: generatedClusterName
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              if [ -n "$CLUSTER_NAME_PREFIX" ] && [ -z "$GENERATED_CLUSTER_NAME" ]; then
+                NEW_VALUE="dynamicValue-$(date +%Y%m%d%H%M%S)"
+                printf "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: accuknox-multi-cluster-helper\n  namespace: $NAMESPACE\ndata:\n  generatedClusterName: \"%s\"" "$NEW_VALUE" | kubectl apply -f -
+              fi
+              sleep infinity
+      restartPolicy: Never
