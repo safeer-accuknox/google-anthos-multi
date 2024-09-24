@@ -7,4 +7,9 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["configmaps"]
+    resourceNames: ["accuknox-multi-cluster-helper", "onboarding-vars"] 
     verbs: ["get", "create", "update", "patch"]
+  - apiGroups: ["apps", "extensions"]
+    resources: ["deployments"]
+    resourceNames: ["agents-operator", "policy-enforcement-agent", "feeder-service", "shared-informer-agent"] 
+    verbs: ["get", "patch"]
