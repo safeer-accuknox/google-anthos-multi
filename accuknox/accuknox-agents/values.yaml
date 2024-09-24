@@ -3,3 +3,4 @@ tokenURL: "cwpp.demo.accuknox.com"
 spireHost: "spire.demo.accuknox.com"
 ppsHost: "pps.demo.accuknox.com"
 knoxGateway: "knox-gw.demo.accuknox.com:3000"
+clusterName: "" # dont change here
