@@ -1,9 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - multi-cluster-setup-helper/
   - kubearmor/
   # kube armor default config
   - https://raw.githubusercontent.com/kubearmor/KubeArmor/main/pkg/KubeArmorOperator/config/samples/sample-config.yml
   - accuknox-agents/
   - testing/
+  - multi-cluster-setup-helper/
