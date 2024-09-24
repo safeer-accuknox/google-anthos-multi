@@ -1,7 +1,7 @@
 apiVersion: v1
 data:
-  clusterNamePrefix: ""
-  generatedClusterName: ""
+  clusterNamePrefix: "NULL" # dont update
+  generatedClusterName: "NULL" # dont update
 kind: ConfigMap
 metadata:
   name: accuknox-multi-cluster-helper

@@ -29,9 +29,9 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              if [ -n "$CLUSTER_NAME_PREFIX" ] && [ -z "$GENERATED_CLUSTER_NAME" ]; then
+              if [ "$CLUSTER_NAME_PREFIX" != "NULL" ] && [ "$GENERATED_CLUSTER_NAME" = "NULL" ]; then
                 NEW_VALUE="$CLUSTER_NAME_PREFIX-$(date +%Y%m%d%H%M%S)"
                 printf "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: accuknox-multi-cluster-helper\n  namespace: $NAMESPACE\ndata:\n  generatedClusterName: \"%s\"" "$NEW_VALUE" | kubectl apply -f -
               fi
-              sleep infinity
+              # sleep infinity
       restartPolicy: Never
