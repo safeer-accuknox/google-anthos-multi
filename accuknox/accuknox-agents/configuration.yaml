@@ -3,7 +3,7 @@ nameReference:
   fieldSpecs:
   - kind: ConfigMap
     path: data/CLUSTER_NAME
-    path: data/cluster_name
 - kind: ConfigMap
   fieldSpecs:
   - kind: ConfigMap
+    path: data/cluster_name
