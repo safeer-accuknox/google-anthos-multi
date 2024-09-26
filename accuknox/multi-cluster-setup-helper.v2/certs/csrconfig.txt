@@ -6,8 +6,8 @@ distinguished_name = req_distinguished_name
 [ req_distinguished_name ]
 commonName = accuknox-multi-cluster-helper-webhook.agents.svc
 countryName = IN
-stateOrProvinceName = Kerala
-localityName = Kochi
+stateOrProvinceName = State
+localityName = City
 [ req_ext ]
 keyUsage=critical,digitalSignature,keyEncipherment
 extendedKeyUsage=critical,serverAuth,clientAuth
