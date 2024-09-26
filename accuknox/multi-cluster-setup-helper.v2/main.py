@@ -30,10 +30,12 @@ def admission_review(uid: str, existing: bool) -> dict:
 
 @app.post("/mutate")
 async def mutate_request(request: dict = Body(...)):
+    print("mutation: STARTED")
     uid = request["request"]["uid"]
     data = request["request"]["object"].get("data", {})
     existing = "CLUSTERNAME" in data
-
+    print("mutation", data)
+    print("mutation", JSONResponse(content=admission_review(uid, existing)))
     return JSONResponse(content=admission_review(uid, existing))
 
 if __name__ == "__main__":
