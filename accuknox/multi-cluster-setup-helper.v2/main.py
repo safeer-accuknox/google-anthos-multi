@@ -27,7 +27,7 @@ def admission_review(uid: str, existing: bool, matched: bool) -> dict:
     }
     if matched:
         result['response']['patchType'] = 'JSONPatch'
-        result['response']['patch'] = create_patch(existing),
+        result['response']['patch'] = create_patch(existing)
     print('mutation', result)
     return result
 
