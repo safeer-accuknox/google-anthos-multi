@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DOMAIN="accuknox-multi-cluster-helper-webhook"  
+DOMAIN="accuknox-multi-cluster-helper-webhook.agents.svc"  
 KEY_FILE="private.key"
 CERT_FILE="certificate.crt"
 DAYS=365 
