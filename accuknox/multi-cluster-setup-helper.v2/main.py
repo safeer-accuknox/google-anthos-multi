@@ -29,8 +29,7 @@ def admission_review(uid: str, existing: bool, matched: bool) -> dict:
         result['response']['patchType'] = 'JSONPatch'
         result['response']['patch'] = create_patch(existing),
 
-    print(result)
-    return 
+    return result
 
 @app.post('/mutate')
 async def mutate_request(request: dict = Body(...)):
