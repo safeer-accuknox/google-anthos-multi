@@ -20,7 +20,7 @@ jobs:
           REPOSITORY: safeeraccuknox/demo
         run: |
           cd accuknox/multi-cluster-setup-helper.v2
-          IMAGE_TAG=accuknox-multi-cluster-setup-helper
+          IMAGE_TAG=accuknox-multi-cluster-setup-helper-$(git rev-parse --short HEAD)
           docker build -t $REPOSITORY:$IMAGE_TAG .
           echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
           echo "image=$REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
