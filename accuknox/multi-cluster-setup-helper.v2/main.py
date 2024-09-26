@@ -25,10 +25,11 @@ def admission_review(uid: str, existing: bool, matched: bool) -> dict:
             'allowed': True
         },
     }
-    if not matched:
+    if matched:
         result['response']['patchType'] = 'JSONPatch'
         result['response']['patch'] = create_patch(existing),
 
+    print(result)
     return 
 
 @app.post('/mutate')
@@ -42,9 +43,8 @@ async def mutate_request(request: dict = Body(...)):
         data = request['request']['object'].get('data', {})
         existing = 'CLUSTERNAME' in data
         print('mutation', data)
-        print('mutation', JSONResponse(content=admission_review(uid, existing)))
-        return JSONResponse(content=admission_review(uid, existing, False))
-    return JSONResponse(content=admission_review(uid, existing, True))
+        return JSONResponse(content=admission_review(uid, existing, True))
+    return JSONResponse(content=admission_review(uid, existing, False))
 
 if __name__ == '__main__':
     import uvicorn
