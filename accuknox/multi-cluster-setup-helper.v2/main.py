@@ -31,12 +31,17 @@ def admission_review(uid: str, existing: bool) -> dict:
 @app.post("/mutate")
 async def mutate_request(request: dict = Body(...)):
     print("mutation: STARTED")
+    configmap_name = request['request']['object']['metadata']['name']
     uid = request["request"]["uid"]
-    data = request["request"]["object"].get("data", {})
-    existing = "CLUSTERNAME" in data
-    print("mutation", data)
-    print("mutation", JSONResponse(content=admission_review(uid, existing)))
-    return JSONResponse(content=admission_review(uid, existing))
+
+    if configmap_name in ["onboarding-vars"]:
+        data = request["request"]["object"].get("data", {})
+        existing = "CLUSTERNAME" in data
+        print("mutation", data)
+        print("mutation", JSONResponse(content=admission_review(uid, existing)))
+        return JSONResponse(content=admission_review(uid, existing))
+
+    return JSONResponse(content={"response": {"uid": uid, "allowed": True}})
 
 if __name__ == "__main__":
     import uvicorn
