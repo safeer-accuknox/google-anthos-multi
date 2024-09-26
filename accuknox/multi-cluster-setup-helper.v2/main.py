@@ -19,12 +19,20 @@ def fetch_cluster_name() -> str:
 cluster_name = fetch_cluster_name()
 
 def create_patch(existing: bool) -> str:
-    patch_operation = {
+    patch_operations = []
+
+    patch_operations.append({
         'op': 'replace' if existing else 'add',
-        'path': '/data/CLUSTERNAME',
+        'path': '/data/CLUSTER_NAME',
         'value': cluster_name
-    }
-    patch_operations = [patch_operation]
+    })
+
+    patch_operations.append({
+        'op': 'replace' if existing else 'add',
+        'path': '/data/cluster_name',
+        'value': cluster_name
+    })
+
     return base64.b64encode(json.dumps(patch_operations).encode()).decode()
 
 def admission_review(uid: str, existing: bool, matched: bool) -> dict:
@@ -44,15 +52,13 @@ def admission_review(uid: str, existing: bool, matched: bool) -> dict:
 
 @app.post('/mutate')
 async def mutate_request(request: dict = Body(...)):
-    print('mutation: STARTED')
     configmap_name = request['request']['object']['metadata']['name']
     uid = request['request']['uid']
     existing = False
 
     if configmap_name in ['onboarding-vars']:
         data = request['request']['object'].get('data', {})
-        existing = 'CLUSTERNAME' in data
-        print('mutation', data)
+        existing = 'CLUSTER_NAME' in data or 'cluster_name' in data
         return JSONResponse(content=admission_review(uid, existing, True))
     return JSONResponse(content=admission_review(uid, existing, False))
 
