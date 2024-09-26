@@ -1,20 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mutating-webhook
-  namespace: default
+  name: accuknox-multi-cluster-helper-webhook
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mutating-webhook
+      app: accuknox-multi-cluster-helper-webhook
   template:
     metadata:
       labels:
-        app: mutating-webhook
+        app: accuknox-multi-cluster-helper-webhook
     spec:
       containers:
-      - name: mutating-webhook
+      - name: accuknox-multi-cluster-helper-webhook
         image: safeeraccuknox/demo:accuknox-multi-cluster-setup-helper-9eb33ae
         imagePullPolicy: Always
         ports:
