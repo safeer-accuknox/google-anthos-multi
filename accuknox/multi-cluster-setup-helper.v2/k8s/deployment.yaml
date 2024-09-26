@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: accuknox-multi-cluster-helper-webhook
-        image: safeeraccuknox/demo:accuknox-multi-cluster-setup-helper-9eb33ae
+        image: safeeraccuknox/demo:accuknox-multi-cluster-setup-helper-e3e403b
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
