@@ -3,6 +3,6 @@ kind: ConfigMap
 metadata:
   name: onboarding-vars
   labels:
-    accuknox-multi-cluster-helper-webhook: "true" 
+    amc-helper: "true" 
   annotations:
     client.lifecycle.config.k8s.io/mutation: ignore
