@@ -4,7 +4,7 @@ on:
     branches:
       - main
     paths:
-      - 'accuknox/multi-cluster-setup-helper.v2/*'
+      - 'accuknox/multi-cluster-setup-helper/*'
 jobs:
   build:
     name: "Build and Push to  Docker Hub"
@@ -19,7 +19,7 @@ jobs:
         env:
           REPOSITORY: safeeraccuknox/demo
         run: |
-          cd accuknox/multi-cluster-setup-helper.v2
+          cd accuknox/multi-cluster-setup-helper
           IMAGE_TAG=accuknox-multi-cluster-setup-helper-$(git rev-parse --short HEAD)
           docker build -t $REPOSITORY:$IMAGE_TAG .
           echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
