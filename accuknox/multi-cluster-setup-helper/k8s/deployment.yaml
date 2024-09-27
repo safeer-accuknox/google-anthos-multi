@@ -16,20 +16,17 @@ spec:
         app: accuknox-multi-cluster-helper-webhook
         partOf: 'accuknox'
     spec:
-      podSecurityContext:
-      enabled: true
-      runAsNonRoot: true
-      allowPrivilegeEscalation: false
-      seccompProfile:
-        type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: accuknox-multi-cluster-helper-webhook
-        image: safeeraccuknox/demo:accuknox-multi-cluster-setup-helper-b969bc8
+        image: safeeraccuknox/demo:accuknox-multi-cluster-setup-helper-d556571
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
-        containerSecurityContext:
-          enabled: true
+        securityContext:
           allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 101
@@ -37,17 +34,18 @@ spec:
           seccompProfile:
             type: RuntimeDefault
         resources:
-        requests:
-          memory: "200Mi"
-          cpu: "50m"
-          ephemeral-storage: "100Mi"  
-        limits:
-          memory: "500Mi"
-          cpu: "200m"
-          ephemeral-storage: "500Mi"
+          requests:
+            memory: "200Mi"
+            cpu: "50m"
+            ephemeral-storage: "100Mi"  
+          limits:
+            memory: "500Mi"
+            cpu: "200m"
+            ephemeral-storage: "500Mi"
         livenessProbe:
           httpGet:
             path: /
+            scheme: HTTPS
             port: 5000
           initialDelaySeconds: 10
           periodSeconds: 20
@@ -55,6 +53,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /
+            scheme: HTTPS
             port: 5000
           initialDelaySeconds: 10
           periodSeconds: 10
