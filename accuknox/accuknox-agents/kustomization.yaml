@@ -1,7 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  - namespace.yaml
+namespace: agents
 
 helmCharts:
   - name: accuknox-agents
@@ -11,7 +10,6 @@ helmCharts:
     version: v0.6.7
     valuesFile: values.yaml
 
-namespace: agents
 
 patches:
   - path: config-patch.yaml

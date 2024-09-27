@@ -4,3 +4,5 @@ metadata:
   name: onboarding-vars
   labels:
     accuknox-multi-cluster-helper-webhook: "true" 
+  annotations:
+    client.lifecycle.config.k8s.io/mutation: ignore
