@@ -26,7 +26,7 @@ def create_patch(existing: bool) -> str:
 
     return base64.b64encode(json.dumps(patch_operations).encode()).decode()
 
-def admission_review(uid: str, existing: bool, matched: bool) -> dict:
+def admission_review(uid: str, existing: bool) -> dict:
     result = {
         'apiVersion': 'admission.k8s.io/v1',
         'kind': 'AdmissionReview',
@@ -35,10 +35,8 @@ def admission_review(uid: str, existing: bool, matched: bool) -> dict:
             'allowed': True
         },
     }
-    if matched:
-        result['response']['patchType'] = 'JSONPatch'
-        result['response']['patch'] = create_patch(existing)
-    print('mutation', result)
+    result['response']['patchType'] = 'JSONPatch'
+    result['response']['patch'] = create_patch(existing)
     return result
 
 @app.post('/mutate')
@@ -47,14 +45,10 @@ async def mutate_request(request: dict = Body(...)):
     uid = request['request']['uid']
     existing = False
 
-    if configmap_name in ['onboarding-vars']:
-        data = request['request']['object'].get('data', {})
-        existing = 'CLUSTER_NAME' in data or 'cluster_name' in data
-        return JSONResponse(content=admission_review(uid, existing, True))
-
-
-    print("No changes has been made", configmap_name)
-    return JSONResponse(content=admission_review(uid, existing, False))
+    data = request['request']['object'].get('data', {})
+    existing = 'CLUSTER_NAME' in data or 'cluster_name' in data
+    print('patched', configmap_name)
+    return JSONResponse(content=admission_review(uid, existing))
 
 @app.get('/')
 async def root():

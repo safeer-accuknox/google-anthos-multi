@@ -12,7 +12,7 @@ webhooks:
   sideEffects: None
   objectSelector:
     matchLabels:
-      app: accuknox-multi-cluster-helper-webhook
+      accuknox-multi-cluster-helper-webhook: "true" 
   namespaceSelector:
     matchExpressions:
       - key: kubernetes.io/metadata.name

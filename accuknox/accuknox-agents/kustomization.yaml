@@ -12,3 +12,6 @@ helmCharts:
     valuesFile: values.yaml
 
 namespace: agents
+
+patches:
+  - path: config-patch.yaml
