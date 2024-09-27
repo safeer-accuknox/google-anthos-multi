@@ -18,8 +18,6 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        seccompProfile:
-          type: RuntimeDefault
       containers:
       - name: accuknox-multi-cluster-helper-webhook
         image: safeeraccuknox/demo:accuknox-multi-cluster-setup-helper-9c40042
@@ -31,8 +29,6 @@ spec:
           runAsNonRoot: true
           runAsUser: 101
           privileged: false
-          seccompProfile:
-            type: RuntimeDefault
         resources:
           requests:
             memory: "200Mi"
