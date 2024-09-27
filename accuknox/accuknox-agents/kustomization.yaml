@@ -3,7 +3,7 @@ kind: Kustomization
 namespace: agents
 
 resources:
-  - ../multi-cluster-setup
+  - namespace.yaml
 
 helmCharts:
   - name: accuknox-agents
