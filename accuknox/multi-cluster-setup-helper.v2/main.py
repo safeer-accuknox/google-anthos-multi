@@ -3,19 +3,10 @@ from fastapi.responses import JSONResponse
 import base64
 import json
 import requests
+from utils import fetch_cluster_name
 
 app = FastAPI()
 
-cluster_name = ''
-def fetch_cluster_name() -> str:
-    try:
-        response = requests.get(
-            "http://metadata/computeMetadata/v1/instance/attributes/cluster-name",
-            headers={"Metadata-Flavor": "Google"}
-        )
-        return response.text
-    except:
-        return cluster_name
 cluster_name = fetch_cluster_name()
 
 def create_patch(existing: bool) -> str:

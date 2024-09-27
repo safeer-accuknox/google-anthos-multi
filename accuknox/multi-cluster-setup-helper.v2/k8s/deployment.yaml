@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: accuknox-multi-cluster-helper-webhook
-        image: safeeraccuknox/demo:accuknox-multi-cluster-setup-helper-919f898
+        image: safeeraccuknox/demo:accuknox-multi-cluster-setup-helper-8ceff00
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
@@ -22,7 +22,7 @@ spec:
         - name: certs-volume
           readOnly: true
           mountPath: "/certs"
-        volumes:
-        - name: certs-volume
-          secret:
-            secretName: accuknox-multi-cluster-helper-webhook-tls
+      volumes:
+      - name: certs-volume
+        secret:
+          secretName: accuknox-multi-cluster-helper-webhook-tls
