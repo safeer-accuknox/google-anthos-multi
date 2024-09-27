@@ -4,7 +4,7 @@ prompt = no
 req_extensions = req_ext
 distinguished_name = req_distinguished_name
 [ req_distinguished_name ]
-commonName = amc-helper.agents.svc
+commonName = amc-helper.amc-helper.svc
 countryName = IN
 stateOrProvinceName = State
 localityName = City
@@ -15,4 +15,4 @@ keyUsage=critical,digitalSignature,keyEncipherment
 extendedKeyUsage=critical,serverAuth,clientAuth
 subjectAltName = @alt_names
 [ alt_names ]
-DNS.0 = amc-helper.agents.svc
+DNS.0 = amc-helper.amc-helper.svc
