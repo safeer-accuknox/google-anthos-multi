@@ -26,7 +26,6 @@ RUN pip install --upgrade pip && \
     pip install  --no-cache-dir --no-cache ./wheels/* && rm -rf ./wheels
 RUN pip install uvicorn==0.30.6 
 COPY --chown=app:app main.py . 
-COPY certs ./certs
 EXPOSE 5000
 USER app
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000","--ssl-keyfile=certs/private.key", "--ssl-certfile=certs/certificate.crt"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000","--ssl-keyfile=/certs/private.key", "--ssl-certfile=/certs/certificate.crt"]
