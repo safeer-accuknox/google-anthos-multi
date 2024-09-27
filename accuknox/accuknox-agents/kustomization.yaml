@@ -2,6 +2,9 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: agents
 
+resources:
+  - ../multi-cluster-setup
+
 helmCharts:
   - name: accuknox-agents
     repo: "oci://registry-1.docker.io/accuknox"
