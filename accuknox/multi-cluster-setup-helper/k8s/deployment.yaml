@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: accuknox-multi-cluster-helper-webhook
+  labels:
+    app: accuknox-multi-cluster-helper-webhook
+    partOf: 'accuknox'
 spec:
   replicas: 1
   selector:
@@ -11,13 +14,51 @@ spec:
     metadata:
       labels:
         app: accuknox-multi-cluster-helper-webhook
+        partOf: 'accuknox'
     spec:
+      podSecurityContext:
+      enabled: true
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault
       containers:
       - name: accuknox-multi-cluster-helper-webhook
-        image: safeeraccuknox/demo:accuknox-multi-cluster-setup-helper-8ceff00
+        image: safeeraccuknox/demo:accuknox-multi-cluster-setup-helper-b969bc8
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
+        containerSecurityContext:
+          enabled: true
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 101
+          privileged: false
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+        requests:
+          memory: "200Mi"
+          cpu: "50m"
+          ephemeral-storage: "100Mi"  
+        limits:
+          memory: "500Mi"
+          cpu: "200m"
+          ephemeral-storage: "500Mi"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 20
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 10
         volumeMounts:
         - name: certs-volume
           readOnly: true

@@ -51,7 +51,14 @@ async def mutate_request(request: dict = Body(...)):
         data = request['request']['object'].get('data', {})
         existing = 'CLUSTER_NAME' in data or 'cluster_name' in data
         return JSONResponse(content=admission_review(uid, existing, True))
+
+
+    print("No changes has been made", configmap_name)
     return JSONResponse(content=admission_review(uid, existing, False))
+
+@app.get('/')
+async def root():
+    return {"message": "Hello, World!"}
 
 if __name__ == '__main__':
     import uvicorn

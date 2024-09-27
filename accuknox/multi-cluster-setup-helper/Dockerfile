@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1
 RUN mkdir -p $BUILDWORKDIR && \
-    addgroup -S app && adduser -S app -G app && \
+    addgroup -S -g 101 app && adduser -S -u 101 app -G app && \
     chown -R app:app $BUILDWORKDIR
 
 FROM base AS build
