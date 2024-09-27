@@ -1,0 +1,36 @@
+commonLabels:
+  component: 'accuknox-multi-cluster-helper-webhook'
+  partOf: 'accuknox-agent'
+
+app:
+  image:
+    name: safeeraccuknox/demo
+    tag: accuknox-multi-cluster-setup-helper-9c40042
+  podSecurityContext:
+    enabled: true
+    runAsNonRoot: true
+  containerSecurityContext:
+    enabled: true
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 101
+    privileged: false
+  resources:
+    requests:
+      memory: "200Mi"
+      cpu: "50m"
+      ephemeral-storage: "100Mi"  
+    limits:
+      memory: "500Mi"
+      cpu: "200m"
+      ephemeral-storage: "500Mi"
+  livenessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 20
+    timeoutSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 10
+
+accuknoxAgentNamespace: "agents" 

@@ -1,45 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  - namespace.yaml
-  - deployment.yaml
-  - secret.yaml
-  - service.yaml
-  - mutating-webhook.yaml
+namespace: accuknox-multi-cluster
 
-replacements:
-- source:
-    kind: Namespace
-    fieldPath: metadata.name
-  targets:
-    - select:
-        kind: Deployment
-      fieldPaths:
-        - metadata.namespace
-      options:
-        create: true
-    - select:
-        kind: Service
-      fieldPaths:
-        - metadata.namespace
-      options:
-        create: true
-    - select:
-        kind: Secret
-      fieldPaths:
-        - metadata.namespace
-      options:
-        create: true
-    - select:
-        kind: MutatingWebhookConfiguration
-      fieldPaths:
-      - webhooks.0.namespaceSelector.matchExpressions.0.values.0
-      - webhooks.0.clientConfig.service.namespace
-    - select:
-        kind: MutatingWebhookConfiguration
-      fieldPaths:
-      - webhooks.0.name
-      options:
-        delimiter: '.'
-        index: 1
-        create: true
+helmGlobals:
+  chartHome: ./local-charts
+helmCharts:
+- name: accuknox-multi-cluster-helper-webhook
+  releaseName: accuknox-multi-cluster-helper-webhook
+  valuesFile: ./value_overrides.yaml

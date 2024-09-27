@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels: {{- toYaml .Values.commonLabels | nindent 4 }}
+    app: {{ template "fullname" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "fullname" . }}
+  template:
+    metadata:
+      labels: {{- toYaml .Values.commonLabels | nindent 8 }}
+        app: {{ template "fullname" . }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+      - name: {{ template "fullname" . }}
+        image: "{{ .Values.app.image.name }}:{{ .Values.app.image.tag }}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        {{- if .Values.app.containerSecurityContext.enabled }}
+        securityContext: {{- omit .Values.app.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
+        resources: {{- toYaml .Values.app.resources | nindent 10 }}
+        livenessProbe: {{- toYaml .Values.app.livenessProbe | nindent 10 }}
+          httpGet:
+            path: /
+            scheme: HTTPS
+            port: 5000
+        readinessProbe: {{- toYaml .Values.app.readinessProbe | nindent 10 }}
+          httpGet:
+            path: /
+            scheme: HTTPS
+            port: 5000
+        volumeMounts:
+        - name: certs-volume
+          readOnly: true
+          mountPath: "/certs"
+      volumes:
+      - name: certs-volume
+        secret:
+          secretName: {{ template "fullname" . }}-tls

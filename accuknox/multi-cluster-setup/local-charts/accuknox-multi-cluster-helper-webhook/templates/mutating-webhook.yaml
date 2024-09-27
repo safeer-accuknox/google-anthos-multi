@@ -1,24 +1,23 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: accuknox-multi-cluster-helper-webhook
-  labels:
-    app: accuknox-multi-cluster-helper-webhook
-    partOf: 'accuknox'
+  name: {{ template "fullname" . }}
+  labels: {{- toYaml .Values.commonLabels | nindent 4 }}
+    app: {{ template "fullname" . }}
 webhooks:  
-- name: accuknox-multi-cluster-helper-webhook.agents.svc
+- name: {{ template "fullname" . }}.{{ template "namespace" . }}.svc
   matchPolicy: Equivalent
   admissionReviewVersions: ["v1"]
   sideEffects: None
   objectSelector:
     matchLabels:
-      accuknox-multi-cluster-helper-webhook: "true" 
+      {{ template "fullname" . }}: "true" 
   namespaceSelector:
     matchExpressions:
       - key: kubernetes.io/metadata.name
         operator: In
         values: 
-        - agents
+        - {{ .Values.accuknoxAgentNamespace }}
   rules:
   - operations: ["CREATE", "UPDATE"]
     apiGroups: [""]
@@ -31,7 +30,7 @@ webhooks:
     # intended for demonstration purposes only and should be regarded as insecure.
     caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVEekNDQXZlZ0F3SUJBZ0lVVFMrUE5VTk8yd3RiTkdOWjZvbExzUTRmU2Qwd0RRWUpLb1pJaHZjTkFRRUwKQlFBd1p6RTVNRGNHQTFVRUF3d3dZV05qZFd0dWIzZ3RiWFZzZEdrdFkyeDFjM1JsY2kxb1pXeHdaWEl0ZDJWaQphRzl2YXk1aFoyVnVkSE11YzNaak1Rc3dDUVlEVlFRR0V3SkpUakVPTUF3R0ExVUVDQXdGVTNSaGRHVXhEVEFMCkJnTlZCQWNNQkVOcGRIa3dIaGNOTWpRd09USTNNREl6T0RBMldoY05NalV3T1RJM01ESXpPREEyV2pCbk1Ua3cKTndZRFZRUUREREJoWTJOMWEyNXZlQzF0ZFd4MGFTMWpiSFZ6ZEdWeUxXaGxiSEJsY2kxM1pXSm9iMjlyTG1GbgpaVzUwY3k1emRtTXhDekFKQmdOVkJBWVRBa2xPTVE0d0RBWURWUVFJREFWVGRHRjBaVEVOTUFzR0ExVUVCd3dFClEybDBlVENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFLUFEyMEwvK1FKbGNNZlQKV2lkdFZ1ZTdNYXZNL3dzSEpraGh4NytBWTlSR29xbjZHOU9xUmtqTVVVb1BDWnJQNitUN3V3Vmt1dy81OG10RQp1VldoK3drZlNUQ2c4VzR6b0xobkFSK0V1OEg0RWZ2cElSemQxZy9uRTBvd1dWZGFEQ3M3dkl6VlpSbW55bmFUCjNacFk2VnhHb1QvdzVOWGliSU5BbUV4czQzK3NoVytZMDJQQVJHUVlZd3lrU0t1V3dQOG1uWGVWSlViL1VSZlYKaVdCMy96aEtQYkZrcTltelY2RmFYU1l6ZjcxWVhmSkxWL3dYMUU1L3ZIc2FuL1pYQWw5WDYxODFzVm1pQkJPQQpJckIxOVJUTkp1K1BmYnZNWE1EclF6R0RvSUlVRDFEOExxNUE5TU5NY29JVlRnYXBrd3dhRys0VWQ5dkZTSGRoCk9vVERodjBDQXdFQUFhT0JzakNCcnpBZEJnTlZIUTRFRmdRVUtLTWpDQ05CdytVdkhoN2YvdC9SZHJBeDhJMHcKSHdZRFZSMGpCQmd3Rm9BVUtLTWpDQ05CdytVdkhoN2YvdC9SZHJBeDhJMHdEZ1lEVlIwUEFRSC9CQVFEQWdXZwpNQ0FHQTFVZEpRRUIvd1FXTUJRR0NDc0dBUVVGQndNQkJnZ3JCZ0VGQlFjREFqQTdCZ05WSFJFRU5EQXlnakJoClkyTjFhMjV2ZUMxdGRXeDBhUzFqYkhWemRHVnlMV2hsYkhCbGNpMTNaV0pvYjI5ckxtRm5aVzUwY3k1emRtTXcKRFFZSktvWklodmNOQVFFTEJRQURnZ0VCQUY2SExhKzYvbnQ5U2xhdGpvSE1mVUNIOWlvQjVUWEo4UHQyTXY3UQphMXlSOHdXYmhTU2JZU3F4N0RvUXo5V1o0SjRpZVUyUTJCY29NdHloSDd6UEdpZXFKYXdHeVludkc5Z2NZRSttCmhoam04cThDUzFKTC92c2IrTmh1ME5OZGYwT0NOeTVGSE93b1FaSllsaHN5Yld4QUNSTHNkNE9oRC9ydTBIbXEKRzZ2YXBHMjdRcEowSno0WGtIOHNWTEdNaGx6bGhJQVRHUkRUOEtZRzQraURCL2src1UzdDdJYm1GRUMyRVNUVgptMm1KeGtRZjQzMVZsNmhVallTVVg3ZmVEbE1QdlpiQWl4KzdyNTBzK3QvN1d5VHNBSUJpaTF3eXNRV0V5ejNPCmlublBuQ2lBdG1LdndCQjkxR0wrVlpTVkxNczFOSnRSbnlPUlYyclRDUnpwQWpZPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
     service:
-      namespace: agents
-      name: accuknox-multi-cluster-helper-webhook
+      namespace: {{ template "namespace" . }}
+      name: {{ template "fullname" . }}
       path: /mutate
       port: 5000
