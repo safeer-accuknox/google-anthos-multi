@@ -7,9 +7,9 @@ from utils import fetch_cluster_name
 
 app = FastAPI()
 
-cluster_name = fetch_cluster_name()
 
 def create_patch(existing: bool) -> str:
+    cluster_name = fetch_cluster_name()
     patch_operations = []
 
     patch_operations.append({
