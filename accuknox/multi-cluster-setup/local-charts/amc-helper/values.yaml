@@ -5,7 +5,7 @@ commonLabels:
 app:
   image:
     name: safeeraccuknox/demo
-    tag: accuknox-multi-cluster-setup-helper-9c40042
+    tag: accuknox-multi-cluster-setup-helper-f2aabb4
   podSecurityContext:
     enabled: true
     runAsNonRoot: true
