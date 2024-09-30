@@ -1,3 +1,0 @@
-# google-anthos
-
-v1
