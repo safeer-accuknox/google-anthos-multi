@@ -10,7 +10,7 @@ helmCharts:
     repo: "oci://registry-1.docker.io/accuknox"
     releaseName: agents
     namespace: agents
-    version: v0.7.1
+    version: v0.7.2
     valuesFile: values.yaml
 
 
