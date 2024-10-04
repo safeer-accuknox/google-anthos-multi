@@ -6,3 +6,6 @@ resources:
   - policy.yaml
 
 namespace: default
+
+commonAnnotations:
+  config.kubernetes.io/depends-on: apps/namespaces/kubearmor/Deployment/kubearmor-operator
