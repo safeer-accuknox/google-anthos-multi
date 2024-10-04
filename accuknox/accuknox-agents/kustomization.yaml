@@ -25,5 +25,5 @@ patches:
         value: |
             apps/namespaces/amc-helper/Deployment/amc-helper,
             apps/namespaces/kubearmor/Deployment/kubearmor-operator,
-            apps/namespaces/agents/ConfigMap/onboarding-vars
+            /namespaces/agents/ConfigMap/onboarding-vars
   - path: config-patch.yaml
