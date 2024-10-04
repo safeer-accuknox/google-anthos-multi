@@ -11,10 +11,13 @@ helmCharts:
     releaseName: agents
     namespace: agents
     version: v0.7.3
-    valuesFile: values.yaml
+    valuesFile: value_overrides.yaml
 
 commonAnnotations:
     client.lifecycle.config.k8s.io/mutation: ignore
+    config.kubernetes.io/depends-on: |
+      apps/namespaces/amc-helper/Deployment/amc-helper,
+      apps/namespaces/kubearmor/Deployment/kubearmor-operator
 
 patches:
   - path: config-patch.yaml

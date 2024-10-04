@@ -3,6 +3,8 @@ kind: Kustomization
 
 resources:
   - namespace.yaml
+  # kube armor default config
+  - sample-config.yml
 
 helmCharts:
   - name: kubearmor-operator
@@ -13,5 +15,5 @@ helmCharts:
 
 commonAnnotations:
     client.lifecycle.config.k8s.io/mutation: ignore
-    
+
 namespace: kubearmor
