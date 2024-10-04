@@ -11,4 +11,7 @@ helmCharts:
     releaseName: kubearmor-operator
     namespace: kubearmor
 
+commonAnnotations:
+    client.lifecycle.config.k8s.io/mutation: ignore
+    
 namespace: kubearmor
