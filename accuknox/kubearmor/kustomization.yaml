@@ -10,8 +10,6 @@ helmCharts:
 
 resources:
   - namespace.yaml
-  # kube armor default config
-  - sample-config.yaml
 
 commonAnnotations:
     client.lifecycle.config.k8s.io/mutation: ignore
