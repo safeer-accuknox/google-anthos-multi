@@ -1,17 +1,17 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-resources:
-  - namespace.yaml
-  # kube armor default config
-  - sample-config.yaml
-
 helmCharts:
   - name: kubearmor-operator
     repo: https://kubearmor.github.io/charts
     version: v1.4.1
     releaseName: kubearmor-operator
     namespace: kubearmor
+
+resources:
+  - namespace.yaml
+  # kube armor default config
+  - sample-config.yaml
 
 commonAnnotations:
     client.lifecycle.config.k8s.io/mutation: ignore
