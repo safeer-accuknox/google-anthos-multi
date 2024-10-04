@@ -14,10 +14,16 @@ helmCharts:
     valuesFile: value_overrides.yaml
 
 commonAnnotations:
-    client.lifecycle.config.k8s.io/mutation: ignore
-    config.kubernetes.io/depends-on: |
-      apps/namespaces/amc-helper/Deployment/amc-helper,
-      apps/namespaces/kubearmor/Deployment/kubearmor-operator
+  client.lifecycle.config.k8s.io/mutation: ignore
 
 patches:
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: /metadata/annotations/config.kubernetes.io~1depends-on
+        value: |
+            apps/namespaces/amc-helper/Deployment/amc-helper,
+            apps/namespaces/kubearmor/Deployment/kubearmor-operator,
+            apps/namespaces/agents/ConfigMap/onboarding-vars
   - path: config-patch.yaml

@@ -6,3 +6,5 @@ metadata:
     amc-helper: "true" 
   annotations:
     client.lifecycle.config.k8s.io/mutation: ignore
+    config.kubernetes.io/depends-on: |-
+      apps/namespaces/amc-helper/Deployment/amc-helper
