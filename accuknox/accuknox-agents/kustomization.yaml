@@ -13,6 +13,8 @@ helmCharts:
     version: v0.7.3
     valuesFile: values.yaml
 
+commonAnnotations:
+    client.lifecycle.config.k8s.io/mutation: ignore
 
 patches:
   - path: config-patch.yaml
