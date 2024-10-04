@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   # kube armor default config
-  - sample-config.yml
+  - sample-config.yaml
 
 helmCharts:
   - name: kubearmor-operator
