@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/created-by: kubearmoroperator
   name: kubearmorconfig-default
   annotations:
-      apps/namespaces/kubearmor/Deployment/kubearmor-operator
+    config.kubernetes.io/depends-on: apps/namespaces/kubearmor/Deployment/kubearmor-operator
 spec:
   defaultCapabilitiesPosture: audit
   defaultFilePosture: audit
